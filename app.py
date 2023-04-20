@@ -1,27 +1,44 @@
 from flask import Flask, render_template, request
 from flask_debugtoolbar import DebugToolbarExtension
 
-from stories import silly_story
+from stories import silly_story, excited_story, serious_story
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "secret"
+app.config["SECRET_KEY"] = "secret"
 
 debug = DebugToolbarExtension(app)
 
+STORIES = {
+    "silly": silly_story,
+    "excited": excited_story,
+    "serious": serious_story,
+}
+
+story_chosen = None
+
+
 @app.get("/")
 def homepage():
-    """Loads the homepage"""
+    """Loads the dropdown of madlib stories"""
 
-    return render_template("questions.html", prompts=silly_story.prompts)
+    return render_template("dropdown.html", stories=STORIES.values())
+
+
+@app.get("/questions")
+def questions():
+    """Loads the page with the questions for a given story"""
+
+    story_chosen = STORIES[request.args.get("madlib-stories")]
+
+    return render_template(
+        "questions.html", prompts=story_chosen.prompts, story=story_chosen
+    )
+
 
 @app.get("/results")
 def display_results():
     """Loads the results from story inputs"""
-    #TODO: use request.args directly
 
-    story_ans = {}
+    story = STORIES[request.args.get("chosen_story")]
 
-    for word in silly_story.prompts:
-        story_ans[word] = request.args.get(word)
-
-    return render_template("results.html",story = silly_story.get_result_text(story_ans))
+    return render_template("results.html", story=story.get_result_text(request.args))
