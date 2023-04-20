@@ -35,6 +35,7 @@ def questions():
     )
 
 
+# can pass in the story as a URL parameter "/<story>/results"
 @app.get("/results")
 def display_results():
     """Loads the results from story inputs"""
